@@ -1,6 +1,11 @@
+import sys
+sys.path.append('./lib')  
+
+
 import pandas as pd
 import datetime
 from random import randint, random
+
 from calc import calcProfit, getChunks
 
 # Settings
@@ -15,7 +20,7 @@ trade_delay    = 3600 #3600 = 1 hour, 600 = 10 minutes
 day_in_seconds = 86400
 
 # Load CSV chunks
-csv    = pd.read_csv(file_name, parse_dates=True)
+csv    = pd.read_csv("data/" + file_name, parse_dates=True)
 chunks = getChunks(csv, count, day_in_seconds)
 
 # Get average 

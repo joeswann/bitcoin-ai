@@ -82,7 +82,7 @@ def makeChoice(cur_price, next_price, mode, fee, accuracy):
 
   # Make random choice
   if(mode == 'random'):
-    choice = randint(1,2)
+    choice = randint(0,2)
 
   # % Chance of making correct choice
   if(mode == 'accuracy'):
@@ -90,7 +90,8 @@ def makeChoice(cur_price, next_price, mode, fee, accuracy):
 
     # If we should make a wrong choice and new choice is wrong
     if(random() > accuracy and new_choice == choice):
-      while(new_choice == choice): # Make sure we pick something else
+      # Make sure we pick something else
+      while(new_choice == choice): 
         new_choice = randint(0,2)
       # Update choice
       choice = new_choice
