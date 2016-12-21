@@ -1,0 +1,7 @@
+sudo apt-get -y install python-tk tk-dev;
+
+pyenv install 2.7.10
+
+
+pip install https://storage.googleapis.com/tensorflow/linux/cpu/tensorflow-0.11.0rc2-cp27-none-linux_x86_64.whl;
+pip install pandas numpy sklearn scipy;
