@@ -1,7 +1,6 @@
 import sys
 sys.path.append('./lib')  
 
-
 import pandas as pd
 import datetime
 from random import randint, random
@@ -12,9 +11,9 @@ from calc import calcProfit, getChunks
 file_name      = 'k_usd.csv' #http://api.bitcoincharts.com/v1/csv/krakenUSD.csv.gz
 mode           = 'accuracy'
 
-fund     = 100
-fee      = 0.25
-accuracy = 0.6
+fund     = 1000
+fee      = 0.26
+accuracy = 0.55
 count    = 60
 trade_delay    = 3600 #3600 = 1 hour, 600 = 10 minutes
 day_in_seconds = 86400
