@@ -22,17 +22,23 @@ c = conn.cursor()
 
 first_time = float(c.execute('SELECT date FROM k_usd order by date desc limit 1').fetchone()[0])
 
-print first_time
-
 for h in range(days * 24):
-  start_time = first_time + (h * hour)
-  end_time   = start_time + hour*10
+  s_time = first_time - (h * hour) - (hour * 2) # Beginning of segment 
+  m_time = s_time + hour     # End of 1 hour segment
+  e_time = s_time + hour * 2 # 2 Hour mark
 
-  rows = c.execute('SELECT * from k_usd where (date > ?) order by date desc', start_time).fetchall()
+  df = pd.read_sql_query('SELECT * from k_usd where date > {0} and date < {1} order by date desc'.format(s_time, e_time), conn)
+  s_row = df[:1]
+  e_row = df[-1:]
 
-  print rows
-  break
-
+  # We want 121 columns
+  # Each column is 30 seconds
+  prices =  np.zeros((1,121,1))
+  for t in range(120):
+    t_pointer = s_time + (t*30)
+    prices[0,t,0] = df[(df["date"] <= t_pointer)]["price"]
+    
+  print prices
 # print c.execute('SELECT * FROM k_usd order by date desc').fetchall()
 
 conn.commit()

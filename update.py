@@ -4,7 +4,6 @@ import gzip
 import io
 import csv
 import sqlite3
-import pandas as pd
 import numpy as np
 
 
@@ -20,7 +19,7 @@ conn = sqlite3.connect('bitcoin.db')
 c = conn.cursor()
 
 c.execute('drop table if exists k_usd')
-c.execute('CREATE TABLE k_usd (date real, price real, quantity real)')
+c.execute('CREATE TABLE k_usd (date int, price real, quantity real)')
 
 for row in df:
   c.execute('INSERT INTO k_usd VALUES (?,?,?)', (row[0],row[1],row[2]))
