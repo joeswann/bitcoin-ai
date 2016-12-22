@@ -30,7 +30,6 @@ dataset    = csv[(csv['time'] > start_time) & (csv['time'] < end_time)]
 # Group into 120 minute chunks
 chunk_max = ((days * day_in_seconds) / two_hours_in_seconds)
 
-chunks = []
 chunk_counter = 0
 chunk_max_size = 0
 
@@ -49,6 +48,8 @@ while chunk_counter <= chunk_max:
 
 chunk_counter = 0
 print "Formatting chunks"
+inputs = []
+outputs = []
 while chunk_counter <= chunk_max:
   # first  60 minutes = input
   # Last number @ 120 = output
@@ -58,28 +59,45 @@ while chunk_counter <= chunk_max:
 
   first_chunk_df = csv[(csv['time'] > s_time) & (csv['time'] < m_time)]
   last_chunk_df  = csv[(csv['time'] > m_time) & (csv['time'] < e_time)]
-  last_row = last_chunk_df[-1:]
 
   # Get chunk length
   chunk_length = len(first_chunk_df)
 
-  # Instead of prices, we want the difference between each price and the next
-  c_input = first_chunk_df["price"].map(lambda x: [x,0,0])
-  # diff = chunk_max_size - chunk_length
-  # if(diff > 0): c_input = np.pad(c_input, (0,diff), mode='constant', constant_values=(0,0,0))
+  if(chunk_length > 10):
+    # Instead of prices, we want the difference between each price and the next
+    c_raw = first_chunk_df.reset_index()
+    # df = first_chunk_df.reset_index()
+    # print len(c_input)
+    c_input = np.zeros(((len(c_raw) - 1), 1, 1))
+    for idx, c_cur in c_raw.iterrows():
+      if(idx + 1 < chunk_length): 
+        c_next_price = c_raw["price"][idx+1] 
+        c_input[idx,0,0] = c_cur["price"] / c_next_price
 
+    cur_price = float(c_raw["price"][-1:])
+    next_price = float(last_chunk_df["price"][-1:])
 
-  print c_input
-  sys.exit()
-  #we need at least 10 trades to do anything meaningful
-  if(chunk_length > 10): 
-    chunks.append({
-      "input":  c_input,
-      "output": last_row["price"]
-    })
+    # Output should be
+    # 1  = buy
+    # 0  = hold
+    # -1 = sell
+
+    fee = 0.26
+    choice = 0    
+    if(cur_price < next_price): # BTC will go up, so buy
+      diff = (next_price / cur_price) * (1 - fee/100) #Apply fee
+      if(diff > 1): choice = 1
+    if(cur_price > next_price): # BTC will go up, so sell
+      diff = (cur_price / next_price) * (1 - fee/100) #Apply fee
+      if(diff > 1): choice = -1
+
+    inputs.push(c_input)
+    outputs.push(choice)
 
   chunk_counter += 1
 
+
+# print chunks
 
 # Select train/test data
 # train, test = train_test_split(chunks, test_size = 0.25)
@@ -87,8 +105,8 @@ while chunk_counter <= chunk_max:
 
 # since we are using stateful rnn tsteps can be set to 1
 tsteps = 1
-batch_size = 25
-epochs = 5
+batch_size = 5
+epochs = 500
 # number of elements ahead that are used to make the prediction
 lahead = 1
 
@@ -109,14 +127,15 @@ print(expected_output.shape)
 
 print('Creating Model')
 model = Sequential()
-model.add(LSTM(50,
-               batch_input_shape=(batch_size, tsteps, 1),
-               return_sequences=True,
-               stateful=True))
-model.add(LSTM(50,
-               return_sequences=False,
-               stateful=True))
-model.add(Dense(1))
+# model.add(LSTM(50,
+#                batch_input_shape=(batch_size, tsteps, 1),
+#                return_sequences=True,
+#                stateful=True))
+# model.add(LSTM(50,
+#                return_sequences=False,
+#                stateful=True))
+# model.add(Dense(output_dim=1))
+model.add(Dense(input_shape=(),output_shape=expected_output.shape))
 model.compile(loss='mse', optimizer='rmsprop')
 
 print('Training')
